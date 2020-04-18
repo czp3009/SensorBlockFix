@@ -25,19 +25,13 @@ namespace SensorBlockFix
         private static void PatchInit(MySensorBlock __instance)
         {
             var maxRange = __instance.MaxRange;
-            var fieldMin = (Sync<Vector3, SyncDirection.BothWays>) FieldMin.GetValue(__instance);
-            // ReSharper disable once ConvertIfStatementToNullCoalescingAssignment
-            if (fieldMin.Validate == null)
-            {
-                fieldMin.Validate = it => it.X >= -maxRange && it.Y >= -maxRange && it.Z >= -maxRange;
-            }
 
-            var fieldMax = (Sync<Vector3, SyncDirection.BothWays>) FieldMax.GetValue(__instance);
-            // ReSharper disable once ConvertIfStatementToNullCoalescingAssignment
-            if (fieldMax.Validate == null)
-            {
-                fieldMax.Validate = it => it.X <= maxRange && it.Y <= maxRange && it.Z <= maxRange;
-            }
+            bool Validator(Vector3 it) => it.X >= -maxRange && it.X <= maxRange &&
+                                          it.Y >= -maxRange && it.Y <= maxRange &&
+                                          it.Z >= -maxRange && it.Z <= maxRange;
+
+            ((Sync<Vector3, SyncDirection.BothWays>) FieldMin.GetValue(__instance)).Validate ??= Validator;
+            ((Sync<Vector3, SyncDirection.BothWays>) FieldMax.GetValue(__instance)).Validate ??= Validator;
         }
 
         public static void Patch(PatchContext patchContext)
