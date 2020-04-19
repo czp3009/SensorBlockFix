@@ -14,9 +14,9 @@ namespace SensorBlockFix
     public static class MySensorBlockPatch
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
+        private static readonly Vector3 FieldMinMax = new Vector3(-0.1f);
+        private static readonly Vector3 FieldMaxMin = new Vector3(0.1f);
         private static FieldInfo _fieldMin;
-
         private static FieldInfo _fieldMax;
 
         // ReSharper disable once InconsistentNaming
@@ -24,14 +24,12 @@ namespace SensorBlockFix
         {
             var maxRange = __instance.MaxRange;
             var fieldMinMin = new Vector3(-maxRange);
-            var fieldMinMax = new Vector3(-0.1f);
-            var fieldMaxMin = new Vector3(0.1f);
             var fieldMaxMax = new Vector3(maxRange);
 
-            ((Sync<Vector3, SyncDirection.BothWays>) _fieldMin.GetValue(__instance)).Validate ??= vector3 =>
-                vector3.IsInsideInclusive(ref fieldMinMin, ref fieldMinMax);
-            ((Sync<Vector3, SyncDirection.BothWays>) _fieldMax.GetValue(__instance)).Validate ??= vector3 =>
-                vector3.IsInsideInclusive(ref fieldMaxMin, ref fieldMaxMax);
+            ((Sync<Vector3, SyncDirection.BothWays>) _fieldMin.GetValue(__instance)).ValueChanged += _ =>
+                __instance.FieldMin = Vector3.Clamp(__instance.FieldMin, fieldMinMin, FieldMinMax);
+            ((Sync<Vector3, SyncDirection.BothWays>) _fieldMax.GetValue(__instance)).ValueChanged += _ =>
+                __instance.FieldMax = Vector3.Clamp(__instance.FieldMax, FieldMaxMin, fieldMaxMax);
         }
 
         public static void Patch(PatchContext patchContext)
