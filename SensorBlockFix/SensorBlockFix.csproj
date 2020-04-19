@@ -63,6 +63,10 @@
             <HintPath>$(SolutionDir)\TorchBinaries\Torch.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <Reference Include="Torch.API">
+            <HintPath>$(SolutionDir)\TorchBinaries\Torch.API.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
         <Reference Include="NLog">
             <HintPath>$(SolutionDir)\TorchBinaries\NLog.dll</HintPath>
             <Private>False</Private>
@@ -70,6 +74,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="MySensorBlockPatch.cs" />
+        <Compile Include="ReflectionExtensions.cs" />
         <Compile Include="SensorBlockFixPlugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>

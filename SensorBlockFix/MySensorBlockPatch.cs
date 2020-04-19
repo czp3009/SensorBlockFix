@@ -15,33 +15,42 @@ namespace SensorBlockFix
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private static readonly FieldInfo FieldMin =
-            typeof(MySensorBlock).GetField("m_fieldMin", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static FieldInfo _fieldMin;
 
-        private static readonly FieldInfo FieldMax =
-            typeof(MySensorBlock).GetField("m_fieldMax", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static FieldInfo _fieldMax;
 
         // ReSharper disable once InconsistentNaming
-        private static void PatchInit(MySensorBlock __instance)
+        private static void InitPatch(MySensorBlock __instance)
         {
             var maxRange = __instance.MaxRange;
+            var fieldMinMin = new Vector3(-maxRange);
+            var fieldMinMax = new Vector3(-0.1f);
+            var fieldMaxMin = new Vector3(0.1f);
+            var fieldMaxMax = new Vector3(maxRange);
 
-            bool Validator(Vector3 it) => it.X >= -maxRange && it.X <= maxRange &&
-                                          it.Y >= -maxRange && it.Y <= maxRange &&
-                                          it.Z >= -maxRange && it.Z <= maxRange;
-
-            ((Sync<Vector3, SyncDirection.BothWays>) FieldMin.GetValue(__instance)).Validate ??= Validator;
-            ((Sync<Vector3, SyncDirection.BothWays>) FieldMax.GetValue(__instance)).Validate ??= Validator;
+            ((Sync<Vector3, SyncDirection.BothWays>) _fieldMin.GetValue(__instance)).Validate ??= vector3 =>
+                vector3.IsInsideInclusive(ref fieldMinMin, ref fieldMinMax);
+            ((Sync<Vector3, SyncDirection.BothWays>) _fieldMax.GetValue(__instance)).Validate ??= vector3 =>
+                vector3.IsInsideInclusive(ref fieldMaxMin, ref fieldMaxMax);
         }
 
         public static void Patch(PatchContext patchContext)
         {
-            var init = typeof(MySensorBlock).GetMethod(
-                "Init",
-                new[] {typeof(MyObjectBuilder_CubeBlock), typeof(MyCubeGrid)}
-            );
-            patchContext.GetPattern(init).Suffixes.Add(((Action<MySensorBlock>) PatchInit).Method);
-            Log.Info("Patching Successful!");
+            try
+            {
+                var init = typeof(MySensorBlock).GetMethod(
+                    "Init",
+                    typeof(MyObjectBuilder_CubeBlock), typeof(MyCubeGrid)
+                );
+                _fieldMin = typeof(MySensorBlock).GetPrivateFieldInfo("m_fieldMin");
+                _fieldMax = typeof(MySensorBlock).GetPrivateFieldInfo("m_fieldMax");
+                patchContext.GetPattern(init).Suffixes.Add<MySensorBlock>(InitPatch);
+                Log.Info("Patching Successful!");
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Patching failed");
+            }
         }
     }
 }
