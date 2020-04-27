@@ -37,6 +37,10 @@
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
+        <Reference Include="WindowsBase" />
+        <Reference Include="System.Windows.Presentation" />
+        <Reference Include="PresentationCore" />
+        <Reference Include="PresentationFramework" />
     </ItemGroup>
     <ItemGroup>
         <Reference Include="VRage">
